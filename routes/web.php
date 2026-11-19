@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DisponibilidadController;
 use App\Http\Controllers\HabitacionController;
+use App\Http\Controllers\HuespedController;
+use App\Http\Controllers\ReservacionController;
 use App\Models\Habitacion;
 use App\Models\Huesped;
 use App\Models\Reservacion;
@@ -33,17 +35,24 @@ Route::middleware('auth')->group(function () {
     // Módulo 01: Disponibilidad y ocupación
     Route::get('/disponibilidad', [DisponibilidadController::class, 'index'])->name('disponibilidad.index');
 
+    // Módulo 02: Reservaciones (Registro, Check-in, Check-out, Cancelar)
+    Route::get('/reservaciones', [ReservacionController::class, 'index'])->name('reservaciones.index');
+    Route::post('/reservaciones', [ReservacionController::class, 'store'])->name('reservaciones.store');
+    Route::patch('/reservaciones/{reservacion}/check-in', [ReservacionController::class, 'checkIn'])->name('reservaciones.checkin');
+    Route::patch('/reservaciones/{reservacion}/check-out', [ReservacionController::class, 'checkOut'])->name('reservaciones.checkout');
+    Route::patch('/reservaciones/{reservacion}/cancelar', [ReservacionController::class, 'cancelar'])->name('reservaciones.cancelar');
+
+    // Módulo 03: Huéspedes
+    Route::get('/huespedes', [HuespedController::class, 'index'])->name('huespedes.index');
+    Route::post('/huespedes', [HuespedController::class, 'store'])->name('huespedes.store');
+
     // Módulo 04: Habitaciones
     Route::get('/habitaciones', [HabitacionController::class, 'index'])->name('habitaciones.index');
     Route::patch('/habitaciones/{habitacion}/estado', [HabitacionController::class, 'cambiarEstado'])->name('habitaciones.estado');
 
-    // Acciones exclusivas de Administrador sobre habitaciones
+    // Acciones exclusivas de Administrador
     Route::middleware('role:admin')->group(function () {
         Route::post('/habitaciones', [HabitacionController::class, 'store'])->name('habitaciones.store');
         Route::put('/habitaciones/{habitacion}', [HabitacionController::class, 'update'])->name('habitaciones.update');
     });
-
-    // Placeholders temporales para el menú superior (Siguiente paso)
-    Route::get('/reservaciones', fn() => redirect()->route('disponibilidad.index'))->name('reservaciones.index');
-    Route::get('/huespedes', fn() => redirect()->route('disponibilidad.index'))->name('huespedes.index');
 });
