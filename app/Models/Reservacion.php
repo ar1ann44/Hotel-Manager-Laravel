@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Reservacion extends Model
@@ -27,5 +28,16 @@ class Reservacion extends Model
     public function usuario()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Total a pagar = precio por noche x número de noches.
+     * Siempre se cobra al menos 1 noche.
+     */
+    public static function calcularTotal(float $precioNoche, string $fechaEntrada, string $fechaSalida): float
+    {
+        $noches = Carbon::parse($fechaEntrada)->diffInDays(Carbon::parse($fechaSalida));
+
+        return $precioNoche * max(1, $noches);
     }
 }

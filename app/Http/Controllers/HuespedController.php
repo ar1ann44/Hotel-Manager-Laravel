@@ -35,9 +35,12 @@ class HuespedController extends Controller
         $data = $request->validate([
             'nombre_completo' => 'required|string|max:100',
             'tipo_documento' => 'required|in:INE,Pasaporte,Licencia,Otro',
-            'documento_identidad' => 'required|string|max:50',
-            'telefono' => 'required|string|max:25',
+            'documento_identidad' => 'required|string|max:50|unique:huespedes,documento_identidad',
+            'telefono' => ['required', 'regex:/^[0-9 +()-]{7,25}$/'],
             'email' => 'nullable|email|max:150',
+        ], [
+            'documento_identidad.unique' => 'Ya existe un huésped registrado con ese documento.',
+            'telefono.regex' => 'El teléfono solo puede tener números, espacios, guiones o paréntesis (mínimo 7).',
         ]);
 
         $siguienteNum = Huesped::count() + 1;

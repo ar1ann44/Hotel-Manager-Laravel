@@ -6,7 +6,6 @@ use App\Models\Habitacion;
 use App\Models\Huesped;
 use App\Models\Reservacion;
 use App\Services\CurrencyService;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -47,18 +46,21 @@ class ReservacionController extends Controller
     {
         $request->validate([
             'habitacion_id' => 'required|exists:habitaciones,id',
-            'fecha_entrada' => 'required|date',
+            'fecha_entrada' => 'required|date|after_or_equal:today',
             'fecha_salida' => 'required|date|after:fecha_entrada',
             'numero_huespedes' => 'required|integer|min:1|max:8',
             'modo_huesped' => 'required|in:existente,nuevo',
             'huesped_id' => 'required_if:modo_huesped,existente|nullable|exists:huespedes,id',
             'nombre_completo' => 'required_if:modo_huesped,nuevo|nullable|string|max:100',
             'tipo_documento' => 'required_if:modo_huesped,nuevo|nullable|in:INE,Pasaporte,Licencia,Otro',
-            'documento_identidad' => 'required_if:modo_huesped,nuevo|nullable|string|max:50',
-            'telefono' => 'required_if:modo_huesped,nuevo|nullable|string|max:25',
+            'documento_identidad' => 'required_if:modo_huesped,nuevo|nullable|string|max:50|unique:huespedes,documento_identidad',
+            'telefono' => ['required_if:modo_huesped,nuevo', 'nullable', 'regex:/^[0-9 +()-]{7,25}$/'],
             'email' => 'nullable|email|max:150',
         ], [
+            'fecha_entrada.after_or_equal' => 'La fecha de llegada no puede ser anterior a hoy.',
             'fecha_salida.after' => 'La fecha de salida debe ser posterior a la llegada.',
+            'documento_identidad.unique' => 'Ya existe un huésped registrado con ese documento.',
+            'telefono.regex' => 'El teléfono solo puede tener números, espacios, guiones o paréntesis (mínimo 7).',
             'nombre_completo.required_if' => 'Ingresa el nombre completo del nuevo huésped.',
             'documento_identidad.required_if' => 'Ingresa el número de identificación del huésped.',
             'telefono.required_if' => 'Ingresa el teléfono del huésped.',
@@ -101,8 +103,7 @@ class ReservacionController extends Controller
                 $huespedId = $request->huesped_id;
             }
 
-            $noches = max(1, Carbon::parse($request->fecha_entrada)->diffInDays(Carbon::parse($request->fecha_salida)));
-            $totalMxn = $habitacion->precio_noche * $noches;
+            $totalMxn = Reservacion::calcularTotal($habitacion->precio_noche, $request->fecha_entrada, $request->fecha_salida);
 
             $ultimoId = Reservacion::max('id') ?? 1000;
             $folio = 'R-' . (1000 + $ultimoId);
