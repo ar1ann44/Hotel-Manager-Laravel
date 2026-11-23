@@ -115,5 +115,6 @@
             </tbody>
         </table>
     </div>
+    <div class="mt-4">{{ $huespedes->links() }}</div>
 </div>
 @endsection

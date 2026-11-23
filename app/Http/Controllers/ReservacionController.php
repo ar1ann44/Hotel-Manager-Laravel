@@ -16,13 +16,18 @@ class ReservacionController extends Controller
     {
         $filtroEstado = $request->query('estado', 'todas');
 
-        $todas = Reservacion::with(['habitacion', 'huesped'])
+        // Mejora de rendimiento: se filtra en la base de datos y se muestran 25 por página
+        // (antes se traían TODAS las reservaciones y se filtraban en PHP)
+        $reservaciones = Reservacion::with(['habitacion', 'huesped'])
+            ->when($filtroEstado !== 'todas', fn ($q) => $q->where('estado', $filtroEstado))
             ->orderByDesc('id')
-            ->get();
+            ->paginate(25)
+            ->withQueryString();
 
-        $reservaciones = $filtroEstado === 'todas'
-            ? $todas
-            : $todas->where('estado', $filtroEstado);
+        // Cuántas reservaciones hay de cada estado, en una sola consulta
+        $conteos = Reservacion::selectRaw('estado, count(*) as total')
+            ->groupBy('estado')
+            ->pluck('total', 'estado');
 
         $habitaciones = Habitacion::where('estado', '!=', 'mantenimiento')->orderBy('numero')->get();
         $huespedes = Huesped::orderBy('nombre_completo')->get();
@@ -37,7 +42,7 @@ class ReservacionController extends Controller
         ];
 
         return view('reservaciones.index', compact(
-            'reservaciones', 'todas', 'filtroEstado', 'habitaciones',
+            'reservaciones', 'conteos', 'filtroEstado', 'habitaciones',
             'huespedes', 'tasas', 'preseleccion'
         ));
     }

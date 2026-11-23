@@ -19,7 +19,8 @@ class HuespedController extends Controller
                   ->orWhere('documento_identidad', 'like', "%{$busqueda}%");
             })
             ->orderByDesc('id')
-            ->get();
+            ->paginate(25)            // Mejora de rendimiento: 25 huéspedes por página
+            ->withQueryString();
 
         $totalRegistrados = Huesped::count();
         $enCasaCount = Huesped::whereHas('reservaciones', fn($q) => $q->where('estado', 'en_casa'))->count();

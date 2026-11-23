@@ -108,11 +108,11 @@
         <h2 class="text-xl font-serif">Registro de reservaciones <span class="text-xs text-[#9E4731]">预订记录</span></h2>
         <div class="flex flex-wrap gap-1.5 text-xs">
             <a href="{{ route('reservaciones.index', ['estado' => 'todas']) }}" class="px-3 py-1 border {{ $filtroEstado === 'todas' ? 'bg-[#1E3A3A] text-white' : 'bg-white' }}">
-                Todas · {{ $todas->count() }}
+                Todas · {{ $conteos->sum() }}
             </a>
             @foreach(['confirmada' => 'Confirmada', 'en_casa' => 'En casa', 'finalizada' => 'Finalizada', 'cancelada' => 'Cancelada'] as $key => $label)
                 <a href="{{ route('reservaciones.index', ['estado' => $key]) }}" class="px-3 py-1 border {{ $filtroEstado === $key ? 'bg-[#1E3A3A] text-white' : 'bg-white' }}">
-                    {{ $label }} · {{ $todas->where('estado', $key)->count() }}
+                    {{ $label }} · {{ $conteos[$key] ?? 0 }}
                 </a>
             @endforeach
         </div>
@@ -191,6 +191,7 @@
             </tbody>
         </table>
     </div>
+    <div class="mt-4">{{ $reservaciones->links() }}</div>
 </div>
 
 <script>
