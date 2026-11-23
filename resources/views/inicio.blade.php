@@ -61,7 +61,7 @@
             <h3 class="text-xl font-serif mt-1">Reservaciones</h3>
             <p class="text-xs text-[#5C6672] mt-2">Registro de reservaciones, check-in, check-out y cancelaciones con su total.</p>
         </div>
-        <p class="text-xs font-semibold text-[#244E8A] mt-4">{{ $reservasActivas }} activas · {{ $llegadasHoy }} por llegar →</p>
+        <p class="text-xs font-semibold text-[#244E8A] mt-4">{{ $reservasActivas }} activas · {{ $llegadasHoy }} llegan hoy →</p>
     </a>
 
     <a href="{{ route('huespedes.index') }}" class="bg-[#FAF8F3] border border-[#D8D0C0] p-5 hover:border-[#244E8A] flex flex-col justify-between">

@@ -22,7 +22,9 @@ Route::middleware('auth')->group(function () {
         $porcentaje = $vendibles > 0 ? round(($ocupadas / $vendibles) * 100) : 0;
         $mantenimiento = Habitacion::where('estado', 'mantenimiento')->count();
         $reservasActivas = Reservacion::whereIn('estado', ['confirmada', 'en_casa'])->count();
-        $llegadasHoy = Reservacion::where('estado', 'confirmada')->count();
+        $llegadasHoy = Reservacion::where('estado', 'confirmada')
+            ->whereDate('fecha_entrada', today())
+            ->count();
         $totalHuespedes = Huesped::count();
         $enCasa = Reservacion::where('estado', 'en_casa')->count();
 
