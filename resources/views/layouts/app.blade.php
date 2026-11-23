@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'PENGLAI') | Sistema de Gestión Hotelera</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuentes del prototipo de diseño -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Serif+SC:wght@500;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
 </head>
 <body class="bg-[#F5F1E8] text-[#1E3A3A] min-h-screen flex flex-col font-sans">
     <!-- Barra superior -->
