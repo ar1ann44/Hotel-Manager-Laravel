@@ -39,7 +39,7 @@ class DisponibilidadController extends Controller
                 'fecha_salida.after' => 'La fecha de salida debe ser posterior a la fecha de llegada.',
             ]);
 
-            $habitacionesLibres = $this->consultarDisponibilidad($fechaEntrada, $fechaSalida, $capacidad, $tipo);
+            $habitacionesLibres = Habitacion::disponibles($fechaEntrada, $fechaSalida, $capacidad, $tipo);
         }
 
         $tasas = $currencyService->obtenerTasasDesdeMxn();
@@ -50,22 +50,5 @@ class DisponibilidadController extends Controller
             'porcentajeOcupacion', 'habitacionesLibres', 'fechaEntrada',
             'fechaSalida', 'tipo', 'capacidad', 'tasas'
         ));
-    }
-
-    public function consultarDisponibilidad(string $fechaEntrada, string $fechaSalida, int $capacidad, string $tipo = 'Todas')
-    {
-        $query = Habitacion::where('estado', '!=', 'mantenimiento')
-            ->where('capacidad', '>=', $capacidad)
-            ->whereDoesntHave('reservaciones', function ($q) use ($fechaEntrada, $fechaSalida) {
-                $q->whereIn('estado', ['confirmada', 'en_casa'])
-                  ->where('fecha_entrada', '<', $fechaSalida)
-                  ->where('fecha_salida', '>', $fechaEntrada);
-            });
-
-        if ($tipo !== 'Todas') {
-            $query->where('tipo', $tipo);
-        }
-
-        return $query->orderBy('piso')->orderBy('numero')->get();
     }
 }
