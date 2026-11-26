@@ -21,8 +21,7 @@
 * **Backend:** Laravel 13 (PHP 8.5)
 * **Frontend:** Vistas Blade + Tailwind CSS (Diseño responsivo)
 * **Base de Datos:** MySQL / MariaDB 13
-* **API Externa:** [Frankfurter API](https://api.frankfurter.app/) (Conversión informativa en vivo de tarifas de MXN a USD y EUR)
-* **API Interna:** Endpoints RESTful en JSON (`/api/*`)
+* **API Externa:** [Frankfurter API](https://frankfurter.dev/) (Conversión informativa en vivo de tarifas de MXN a otras monedas)
 * **Pruebas Automatizadas:** PHPUnit 12.5 (con base de datos SQLite en memoria)
 
 ---
@@ -97,23 +96,22 @@ El sistema cuenta con control de acceso basado en roles (*Middleware* y validaci
    * **Fin de limpieza:** Libera la habitación a `disponible`.
    * **Cancelación:** Estado `cancelada` $\rightarrow$ Libera la habitación a `disponible`.
 4. **Directorio de Huéspedes:** Registro con validación de documento de identidad único, historial de estancias y situación actual.
-5. **Catálogo de Habitaciones:** Administración de inventario (Estándar, Doble, Suite), precios por noche y estados operativos.
+5. **Catálogo de Habitaciones:** Administración de inventario (Estándar, Doble, Suite), precios por noche y estados operativos. Incluye un selector "Ver tarifas en" para ver las tarifas convertidas a otra moneda.
 
 ---
 
-## API REST Interna (Consulta JSON)
+## API Externa: Conversión de Tarifas (Frankfurter)
 
-El sistema expone endpoints de solo lectura definidos en `routes/api.php` (`App\Http\Controllers\ApiController`):
+En **Habitaciones**, el selector "Ver tarifas en" muestra las tarifas convertidas a otra moneda usando la API pública de Frankfurter (tipo de cambio del Banco Central Europeo). La conversión es solo informativa: el cobro siempre se hace en MXN.
 
-| Método | Ruta | Descripción | Parámetros / Respuesta |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/habitaciones` | Lista todas las habitaciones con tipo, capacidad, precio y estado. | Respuesta `200 OK` en JSON. |
-| `GET` | `/api/disponibilidad` | Consulta habitaciones libres en un rango de fechas. | Query: `fecha_entrada`, `fecha_salida`, `capacidad`, `tipo` (opcional). Devuelve `422` si las fechas son inválidas. |
-| `GET` | `/api/reservaciones/{folio}` | Consulta los detalles públicos de una reservación por su folio (ej. `R-1001`). | Omite datos sensibles (teléfono/ID). Devuelve `404` si el folio no existe. |
+* **Monedas:** dólar estadounidense (USD), euro (EUR), dólar canadiense (CAD), libra esterlina (GBP), yen japonés (JPY) y yuan chino (CNY).
+* **Caché:** la respuesta se guarda 6 horas para no consultar la API en cada página.
+* **Respaldo:** si no hay internet o la API falla, se usan tasas de referencia y se indica en pantalla.
+* **Código:** `app/services/CurrencyService.php`, `app/Http/Controllers/HabitacionController.php` y `resources/views/habitaciones/index.blade.php`.
 
-**Ejemplo de consulta:**
+**Petición que hace el sistema:**
 ```bash
-GET /api/disponibilidad?fecha_entrada=2026-12-01&fecha_salida=2026-12-03&capacidad=4&tipo=Suite
+GET https://api.frankfurter.dev/v1/latest?from=MXN&to=USD,EUR,CAD,GBP,JPY,CNY
 ```
 
 ---
@@ -149,10 +147,9 @@ DB_DATABASE=hotel_manager_rendimiento php artisan medir:rendimiento
 
 ### Comparativa de resultados (Promedio de 5 ejecuciones):
 
-| Pantalla / Endpoint | Tiempo Antes | Tiempo Después | Tamaño HTML Antes | Tamaño HTML Después |
+| Pantalla | Tiempo Antes | Tiempo Después | Tamaño HTML Antes | Tamaño HTML Después |
 | :--- | :---: | :---: | :---: | :---: |
-| **Reservaciones** | `406.4 ms` | **`65.3 ms`** | `6,012 KB` | **`222 KB`** |
-| **Huéspedes** | `112.7 ms` | **`6.2 ms`** | `915 KB` | **`42 KB`** |
-| **Disponibilidad** | `13.4 ms` | **`6.2 ms`** | `29 KB` | `29 KB` |
-| **Inicio** | `6.8 ms` | **`3.3 ms`** | `7 KB` | `7 KB` |
-| **API Disponibilidad** | `5.4 ms` | **`3.0 ms`** | `1 KB` | `1 KB` |
+| **Reservaciones** | `315.5 ms` | **`83.0 ms`** | `6,012 KB` | **`222 KB`** |
+| **Huéspedes** | `119.9 ms` | **`6.3 ms`** | `915 KB` | **`42 KB`** |
+| **Disponibilidad** | `12.7 ms` | **`7.1 ms`** | `29 KB` | `29 KB` |
+| **Inicio** | `9.0 ms` | **`6.4 ms`** | `7 KB` | `10 KB` |
