@@ -22,7 +22,14 @@ class HabitacionController extends Controller
 
         $tasas = $currencyService->obtenerTasasDesdeMxn();
 
-        return view('habitaciones.index', compact('habitaciones', 'todas', 'filtroEstado', 'tasas'));
+        // Moneda elegida para la conversión informativa (dólar por defecto)
+        $monedas = CurrencyService::MONEDAS;
+        $moneda = $request->query('moneda', 'USD');
+        if (! isset($monedas[$moneda])) {
+            $moneda = 'USD';
+        }
+
+        return view('habitaciones.index', compact('habitaciones', 'todas', 'filtroEstado', 'tasas', 'monedas', 'moneda'));
     }
 
     public function store(Request $request)

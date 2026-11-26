@@ -43,7 +43,6 @@ class MedirRendimiento extends Command
             'Reservaciones' => '/reservaciones',
             'Huéspedes' => '/huespedes',
             'Disponibilidad (consulta)' => '/disponibilidad?consultar=1&fecha_entrada=2027-03-01&fecha_salida=2027-03-04&capacidad=2&tipo=Todas',
-            'API disponibilidad' => '/api/disponibilidad?fecha_entrada=2027-03-01&fecha_salida=2027-03-04&capacidad=2',
         ];
 
         $filas = [];

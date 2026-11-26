@@ -12,11 +12,23 @@
     <span class="text-4xl font-serif text-[#244E8A] hidden sm:block">客房</span>
 </div>
 
-<!-- Tipos y tarifas con conversión Frankfurter API -->
-<div class="flex justify-between items-center mb-3">
+<!-- Tipos y tarifas con conversión informativa (API de Frankfurter) -->
+<div class="flex flex-wrap justify-between items-end gap-3 mb-3">
     <h2 class="text-lg font-serif">Tipos y tarifas <span class="text-xs text-[#9E4731]">房型房价</span></h2>
-    <span class="text-xs text-[#5C6672]">Conversión informativa: <strong>{{ $tasas['fuente'] }}</strong></span>
+    <form method="GET" action="{{ route('habitaciones.index') }}" class="flex items-center gap-2 text-sm">
+        <input type="hidden" name="estado" value="{{ $filtroEstado }}">
+        <label for="moneda" class="text-[#5C6672]">Ver tarifas en:</label>
+        <select id="moneda" name="moneda" onchange="this.form.submit()" class="border border-[#D8D0C0] bg-white px-2 py-1">
+            @foreach($monedas as $codigo => $nombre)
+                <option value="{{ $codigo }}" @selected($codigo === $moneda)>{{ $nombre }} ({{ $codigo }})</option>
+            @endforeach
+        </select>
+        <noscript><button type="submit" class="border px-2 py-1">Convertir</button></noscript>
+    </form>
 </div>
+<p class="text-xs text-[#5C6672] mb-3">
+    Conversión informativa: 1 MXN = {{ $tasas[$moneda] }} {{ $moneda }} · {{ $tasas['fuente'] }} · tipo de cambio del {{ $tasas['fecha'] }}. El cobro siempre se hace en pesos mexicanos.
+</p>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
     @foreach(['Estándar' => ['precio' => 1200, 'cap' => 2], 'Doble' => ['precio' => 1800, 'cap' => 4], 'Suite' => ['precio' => 3200, 'cap' => 4]] as $tipoNombre => $info)
@@ -30,7 +42,7 @@
             <h3 class="text-2xl font-serif">{{ $tipoNombre }}</h3>
             <p class="text-sm mt-2">${{ number_format($precio, 0) }} MXN / noche · hasta {{ $cap }} personas</p>
             <p class="text-xs text-[#DCE6F5] mt-1">
-                ≈ ${{ number_format($precio * $tasas['USD'], 2) }} USD · €{{ number_format($precio * $tasas['EUR'], 2) }} EUR
+                ≈ {{ number_format($precio * $tasas[$moneda], 2) }} {{ $moneda }} / noche
             </p>
             <p class="text-xs opacity-80 mt-2">{{ $count }} habitaciones en catálogo</p>
         </div>
@@ -77,11 +89,11 @@
 <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
     <h2 class="text-lg font-serif">Inventario <span class="text-xs text-[#9E4731]">客房清单</span></h2>
     <div class="flex flex-wrap gap-1.5 text-xs">
-        <a href="{{ route('habitaciones.index', ['estado' => 'todas']) }}" class="px-3 py-1 border {{ $filtroEstado === 'todas' ? 'bg-[#1E3A3A] text-white' : 'bg-white' }}">
+        <a href="{{ route('habitaciones.index', ['estado' => 'todas', 'moneda' => $moneda]) }}" class="px-3 py-1 border {{ $filtroEstado === 'todas' ? 'bg-[#1E3A3A] text-white' : 'bg-white' }}">
             Todas · {{ $todas->count() }}
         </a>
         @foreach(['disponible', 'ocupada', 'reservada', 'limpieza', 'mantenimiento'] as $est)
-            <a href="{{ route('habitaciones.index', ['estado' => $est]) }}" class="px-3 py-1 border capitalize {{ $filtroEstado === $est ? 'bg-[#1E3A3A] text-white' : 'bg-white' }}">
+            <a href="{{ route('habitaciones.index', ['estado' => $est, 'moneda' => $moneda]) }}" class="px-3 py-1 border capitalize {{ $filtroEstado === $est ? 'bg-[#1E3A3A] text-white' : 'bg-white' }}">
                 {{ $est }} · {{ $todas->where('estado', $est)->count() }}
             </a>
         @endforeach
@@ -102,7 +114,7 @@
                     Piso {{ $hab->piso }} · {{ $hab->capacidad }} personas · ${{ number_format($hab->precio_noche, 0) }} MXN/noche
                 </p>
                 <p class="text-[11px] text-[#244E8A]">
-                    ≈ ${{ number_format($hab->precio_noche * $tasas['USD'], 2) }} USD · €{{ number_format($hab->precio_noche * $tasas['EUR'], 2) }} EUR
+                    ≈ {{ number_format($hab->precio_noche * $tasas[$moneda], 2) }} {{ $moneda }}/noche
                 </p>
 
                 @if($hab->reservaciones->first())
